@@ -11,38 +11,59 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, Literal
+from datetime import datetime
 
-# Example schemas (replace with your own):
+# Core schemas for the Hospital Portfolio + Online Registration
 
+class PatientRegistration(BaseModel):
+    """
+    Patient registration form data
+    Collection name: "patientregistration"
+    """
+    full_name: str = Field(..., min_length=3, description="Patient full name")
+    email: EmailStr = Field(..., description="Contact email")
+    phone: str = Field(..., min_length=8, max_length=20, description="Phone number")
+    birth_date: Optional[str] = Field(None, description="Birth date (YYYY-MM-DD)")
+    gender: Optional[Literal['male','female','other']] = Field(None, description="Gender")
+    address: Optional[str] = Field(None, description="Home address")
+    department: str = Field(..., description="Target department/polyclinic, e.g., Cardiology")
+    preferred_date: Optional[str] = Field(None, description="Preferred visit date (YYYY-MM-DD)")
+    symptoms: Optional[str] = Field(None, description="Short description of symptoms")
+    status: Literal['pending','confirmed','cancelled'] = Field('pending', description="Registration status")
+
+class AdminUser(BaseModel):
+    """
+    Admin user model (for future extension)
+    Collection name: "adminuser"
+    """
+    name: str = Field(...)
+    role: Literal['admin','superadmin'] = Field('admin')
+    email: Optional[EmailStr] = None
+    is_active: bool = Field(True)
+
+# Example schemas retained for reference and potential future features
 class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    name: str
+    email: str
+    address: str
+    age: Optional[int] = None
+    is_active: bool = True
 
 class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+    title: str
+    description: Optional[str] = None
+    price: float
+    category: str
+    in_stock: bool = True
 
-# Add your own schemas here:
-# --------------------------------------------------
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+# Response models
+class RegistrationPublic(BaseModel):
+    id: str
+    full_name: str
+    department: str
+    preferred_date: Optional[str] = None
+    status: str
+    created_at: Optional[datetime] = None
